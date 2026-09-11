@@ -1,0 +1,76 @@
+{
+  "nodes": [
+    {
+      "id": "dz1",
+      "label": "DZ_1",
+      "type": "homework",
+      "text": "Демо-агент поддержки с циклом Reason → Act → Observe и роутингом между дешёвой и продвинутой моделью. Вокруг нет git-репозитория, окружение называется venv, а не .venv."
+    },
+    {
+      "id": "dz2",
+      "label": "DZ_2",
+      "type": "homework",
+      "text": "Агент с tool calling: курсы валют ЦБ РФ, схема инструмента tool_schema.json, SOP.md. Самодиагностика --selftest из 7 проверок без LLM, нужен интернет до cbr.ru."
+    },
+    {
+      "id": "dz3",
+      "label": "DZ_3",
+      "type": "homework",
+      "text": "Подключение контекста через файл context/kb.json и HTTP-API context_server.py, streaming-ответ с метриками TTFT. Реализует RAG (Retrieval-Augmented Generation) с двумя источниками контекста: file и api, с фолбэком. Самодиагностика --selftest из 6 проверок без LLM."
+    },
+    {
+      "id": "topic_vector",
+      "label": "Векторный поиск",
+      "type": "topic",
+      "text": "Поиск по смыслу с помощью эмбеддингов и измерения сходства векторов, например косинусного. Используется в RAG-системах для извлечения релевантных документов."
+    },
+    {
+      "id": "topic_graph",
+      "label": "Графовая память",
+      "type": "topic",
+      "text": "Хранение отношений между объектами в виде графа и навигация по связям для расширения контекста поиска. Дополняет векторный поиск структурной информацией."
+    },
+    {
+      "id": "topic_embedding",
+      "label": "Эмбеддинги",
+      "type": "topic",
+      "text": "Векторное представление текста для семантического сравнения. Получаются нейросетевой моделью, например text-embedding-qwen3. Каждый документ и запрос проецируются в одно пространство."
+    },
+    {
+      "id": "model_cheap",
+      "label": "Дешёвая модель",
+      "type": "model",
+      "text": "Быстрая и недорогая модель для простых задач. Используется в роутинге DZ_1 для обработки запросов, не требующих высокой точности."
+    },
+    {
+      "id": "model_advanced",
+      "label": "Продвинутая модель",
+      "type": "model",
+      "text": "Мощная модель для сложных задач. Используется в роутинге DZ_1 для обработки запросов, требующих высокой точности и аналитики."
+    },
+    {
+      "id": "concept_rag",
+      "label": "RAG",
+      "type": "concept",
+      "text": "Retrieval-Augmented Generation — обогащение промпта найденными релевантными документами перед генерацией ответа LLM. Снижает галлюцинации, даёт точные ответы по знаниям."
+    },
+    {
+      "id": "concept_streaming",
+      "label": "Streaming",
+      "type": "concept",
+      "text": "Потоковая генерация ответа по чанкам с метриками TTFT и скорости. Пользователь видит текст по мере генерации, а не ждёт весь ответ."
+    }
+  ],
+  "edges": [
+    {"from": "dz1", "to": "model_cheap", "relation": "использует"},
+    {"from": "dz1", "to": "model_advanced", "relation": "использует"},
+    {"from": "dz3", "to": "concept_rag", "relation": "реализует"},
+    {"from": "dz3", "to": "concept_streaming", "relation": "реализует"},
+    {"from": "dz3", "to": "topic_embedding", "relation": "подготавливает"},
+    {"from": "topic_vector", "to": "topic_embedding", "relation": "требует"},
+    {"from": "topic_graph", "to": "topic_vector", "relation": "дополняет"},
+    {"from": "concept_rag", "to": "topic_vector", "relation": "использует"},
+    {"from": "concept_rag", "to": "topic_graph", "relation": "может использовать"},
+    {"from": "concept_streaming", "to": "dz3", "relation": "применяется в"}
+  ]
+}
