@@ -412,7 +412,12 @@ def hybrid_search(
             path=graph_paths.get(nid, ""),
         ))
 
-    # 4. Нормализация score в [0, 1]
+    # 4. Нормализация score в [0, 1].
+    # Косинусное сходство может быть отрицательным — заранее ограничиваем
+    # vector_score до [0, 1], иначе деление на максимум выведет
+    # combined_score за границы диапазона.
+    for c in candidates:
+        c.vector_score = min(1.0, max(0.0, c.vector_score))
     max_v = max((c.vector_score for c in candidates), default=1.0) or 1.0
     max_g = max((c.graph_score for c in candidates), default=1.0) or 1.0
     for c in candidates:
@@ -656,6 +661,19 @@ def selftest() -> int:
             assert 0.0 <= r.combined_score <= 1.0, \
                 f"combined_score {r.combined_score} не в [0,1] для {r.node.id}"
         assert results, "результаты пустые"
+        # Отрицательный косинус (теоретически возможен) не выводит
+        # combined_score за [0, 1]: фейковый поиск возвращает скор -0.5.
+        node_ids = list(graph.nodes)
+        class _NegScoreMem:
+            def search(self, query, top_k):
+                return [(node_ids[0], -0.5, {}), (node_ids[1], 0.4, {})]
+        neg_results = hybrid_search("запрос", graph, _NegScoreMem(), top_k=5)
+        for r in neg_results:
+            assert 0.0 <= r.combined_score <= 1.0, \
+                f"combined_score {r.combined_score} не в [0,1] для {r.node.id}"
+        neg_node = next(r for r in neg_results if r.node.id == node_ids[0])
+        assert neg_node.vector_score == 0.0, \
+            f"отрицательный векторный скор не обрезан: {neg_node.vector_score}"
 
     check("knowledge.json валиден (>=5 узлов, >=3 рёбра)", t1_knowledge_valid)
     check("граф: соседи dz3 включают concept_rag", t2_graph_neighbors)
